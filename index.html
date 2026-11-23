@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Parallax Universe</title>
+<meta name="description" content="A layered, interactive journey from a sunset horizon to the far edge of the universe.">
+<style>
+:root{--ink:#f5efe6;--accent:#ffb86b;--bg:#05050f;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:Georgia,"Times New Roman",serif;overflow-x:hidden}
+.world{position:relative;overflow:hidden;
+ background:linear-gradient(#ffb36b 0,#e0647a 6%,#6a4c93 14%,#1b1b4b 28%,#0a0a26 45%,#05050f 65%,#14052e 85%,#2a0a3d 100%)}
+.layer{position:absolute;left:0;width:100%;will-change:transform;pointer-events:none}
+.star{position:absolute;border-radius:50%;background:#fff}
+.sun{left:50%;top:38vh;width:min(46vw,380px);aspect-ratio:1;margin-left:calc(min(46vw,380px)/-2);border-radius:50%;
+ background:radial-gradient(circle,#fff6c9 0,#ffd27a 40%,#ff8a5c 70%,transparent 72%);box-shadow:0 0 120px 60px rgba(255,150,90,.45)}
+.mtn svg{display:block;width:100%;height:auto}
+.cloud{position:absolute;height:34px;border-radius:40px;background:rgba(255,255,255,.55);filter:blur(2px)}
+.cloud::before,.cloud::after{content:"";position:absolute;background:inherit;border-radius:50%}
+.cloud::before{width:60px;height:60px;left:18%;top:-26px}
+.cloud::after{width:80px;height:80px;left:48%;top:-38px}
+.body{position:absolute;border-radius:50%}
+.moon{width:min(30vw,220px);aspect-ratio:1;background:radial-gradient(circle at 35% 30%,#fff,#cfd3dc 45%,#8a8fa3);box-shadow:0 0 60px rgba(220,225,255,.35)}
+.moon i{position:absolute;border-radius:50%;background:rgba(80,85,110,.3)}
+.ringed{width:min(34vw,260px);aspect-ratio:1;background:radial-gradient(circle at 30% 30%,#ffd9a0,#c9803f 60%,#6a3a1c)}
+.ringed::after{content:"";position:absolute;left:-45%;top:35%;width:190%;height:30%;border-radius:50%;border:10px solid rgba(255,220,170,.6);transform:rotate(-18deg)}
+.gas{width:min(48vw,380px);aspect-ratio:1;background:repeating-linear-gradient(#5aa9e6 0 14%,#7fc8f8 14% 24%,#3b6ea5 24% 40%,#9fd8ff 40% 48%);box-shadow:inset -40px -30px 70px rgba(0,0,30,.7),0 0 70px rgba(90,170,230,.4)}
+.ice{width:min(14vw,110px);aspect-ratio:1;background:radial-gradient(circle at 30% 30%,#e8fffb,#7fd6c8 60%,#2a6f69)}
+.red{width:min(10vw,80px);aspect-ratio:1;background:radial-gradient(circle at 30% 30%,#ffb199,#d4472b 65%,#5a1608)}
+.nebula{width:70vw;height:70vw;max-width:700px;max-height:700px;border-radius:50%;filter:blur(60px);opacity:.55}
+.galaxy{width:min(60vw,460px);aspect-ratio:2/1;border-radius:50%;transform:rotate(-25deg);
+ background:radial-gradient(ellipse,#fff 0,#ffd9ff 8%,rgba(180,90,255,.6) 30%,transparent 70%);filter:blur(3px)}
+.sat{width:70px;height:26px;background:#cfd3dc;border-radius:4px;position:absolute}
+.sat::before,.sat::after{content:"";position:absolute;top:-6px;width:28px;height:38px;background:#3a7bd5;border:2px solid #cfd3dc}
+.sat::before{left:-34px}.sat::after{right:-34px}
+.comet{position:absolute;width:150px;height:2px;border-radius:50%;background:linear-gradient(90deg,rgba(255,255,255,.9),rgba(174,209,255,.7),transparent);box-shadow:0 0 12px rgba(190,220,255,.8);transform:rotate(-28deg)}
+.comet::before{content:"";position:absolute;left:-5px;top:-3px;width:8px;height:8px;border-radius:50%;background:#fff;box-shadow:0 0 12px 3px rgba(190,220,255,.9)}
+.astro{font-size:64px;position:absolute}
+#rocket{position:fixed;left:50%;bottom:8vh;font-size:56px;z-index:8;will-change:transform;pointer-events:none;filter:drop-shadow(0 0 14px rgba(255,160,80,.8))}
+.panel{position:relative;z-index:5;min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:8vh 8vw}
+.panel.right{align-items:flex-end;text-align:right}
+.panel.mid{align-items:center;text-align:center}
+.panel h1,.panel h2{font-weight:400;letter-spacing:.02em;line-height:1.05;text-shadow:0 2px 30px rgba(0,0,0,.5)}
+.panel h1{font-size:clamp(3rem,10vw,8rem)}
+.panel h2{font-size:clamp(2rem,6vw,4.5rem)}
+.panel p{max-width:34rem;margin-top:1.2rem;font-size:clamp(1rem,2vw,1.25rem);line-height:1.6;opacity:.9;text-shadow:0 1px 12px rgba(0,0,0,.6)}
+.tag{font:600 .75rem/1 system-ui,sans-serif;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem}
+.reveal{opacity:0;transform:translateY(40px);transition:opacity 1s ease,transform 1s ease}
+.reveal.in{opacity:1;transform:none}
+#hud{position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);right:16px;z-index:10;font:600 .8rem system-ui,sans-serif;letter-spacing:.15em;text-align:right;mix-blend-mode:difference;color:#fff}
+#bar{position:fixed;top:0;left:0;height:4px;width:0;background:linear-gradient(90deg,#ffb86b,#c77dff,#5aa9e6);z-index:11}
+.btn{display:inline-block;margin-top:2rem;padding:.9rem 2rem;border:1px solid var(--ink);border-radius:99px;color:var(--ink);text-decoration:none;font:600 .85rem system-ui,sans-serif;letter-spacing:.2em;text-transform:uppercase;pointer-events:auto;transition:background .3s,color .3s}
+.btn:hover{background:var(--ink);color:#05050f}
+.scroll-cue{position:fixed;left:50%;bottom:22px;z-index:9;transform:translateX(-50%);color:rgba(255,255,255,.8);font:600 .65rem system-ui,sans-serif;letter-spacing:.24em;text-decoration:none;text-transform:uppercase;transition:opacity .4s}
+.scroll-cue::after{content:"";display:block;width:1px;height:28px;margin:10px auto 0;background:linear-gradient(#fff,transparent)}
+.scroll-cue.hidden{opacity:0;pointer-events:none}
+@media (max-width:600px){#hud{font-size:.65rem}.scroll-cue{bottom:14px}.sat{transform:scale(.75)}}
+@media (prefers-reduced-motion:reduce){.reveal{transition:none;opacity:1;transform:none}.star{animation:none!important}.scroll-cue{transition:none}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<div id="hud" aria-label="Journey progress">ALTITUDE<br><span id="alt">0</span> KM</div>
+<div id="rocket" aria-hidden="true">🚀</div>
+<a class="scroll-cue" id="scroll-cue" href="#s1" aria-label="Scroll to begin the journey">Scroll to explore</a>
+
+<main class="world" id="world">
+ <!-- STARS (3 depth layers, generated by JS) -->
+ <div class="layer" data-speed="0.9" id="stars1" style="top:0;height:100%" aria-hidden="true"></div>
+ <div class="layer" data-speed="0.7" id="stars2" style="top:0;height:100%" aria-hidden="true"></div>
+ <div class="layer" data-speed="0.4" id="stars3" style="top:0;height:100%" aria-hidden="true"></div>
+
+ <!-- DEEP SPACE -->
+ <div class="layer" data-speed="0.85" style="top:440vh"><div class="body nebula" style="left:-10vw;background:radial-gradient(circle,#7b2ff7,transparent 70%)"></div></div>
+ <div class="layer" data-speed="0.8" style="top:500vh"><div class="body nebula" style="right:-15vw;left:auto;background:radial-gradient(circle,#ff2e88,transparent 70%)"></div></div>
+ <div class="layer" data-speed="0.75" style="top:535vh"><div class="galaxy body" style="left:55vw"></div></div>
+
+ <!-- PLANETS -->
+ <div class="layer" data-speed="0.6" style="top:215vh"><div class="body moon" style="left:12vw"><i style="width:20%;height:20%;left:20%;top:25%"></i><i style="width:12%;height:12%;left:58%;top:55%"></i><i style="width:16%;height:16%;left:35%;top:65%"></i></div></div>
+ <div class="layer" data-speed="0.5" style="top:300vh"><div class="body ringed" style="left:62vw"></div></div>
+ <div class="layer" data-speed="0.35" style="top:395vh"><div class="body gas" style="left:-8vw"></div></div>
+ <div class="layer" data-speed="0.3" style="top:350vh"><div class="body ice" style="left:44vw"></div></div>
+ <div class="layer" data-speed="0.65" style="top:455vh"><div class="body red" style="left:78vw"></div></div>
+
+ <!-- FLOATING OBJECTS (faster than scroll = closer to the viewer) -->
+ <div class="layer" data-speed="-0.35" style="top:330vh"><div class="sat" style="left:30vw;transform:rotate(-12deg)"></div></div>
+ <div class="layer" data-speed="-0.5" style="top:470vh"><div class="astro" style="left:70vw" data-spin>🧑‍🚀</div></div>
+ <div class="layer" data-speed="-0.25" style="top:250vh"><div class="astro" style="left:82vw;font-size:36px" data-spin>☄️</div></div>
+ <div class="layer" data-speed="-0.4" style="top:515vh"><div class="comet" style="left:12vw;top:8vh"></div></div>
+
+ <!-- SKY -->
+ <div class="layer" data-speed="0.8" data-depth="8" style="top:0"><div class="sun"></div></div>
+ <div class="layer" data-speed="0.55" data-depth="14" style="top:38vh;height:60vh">
+  <div class="cloud" style="left:8%;top:10vh;width:180px"></div>
+  <div class="cloud" style="left:62%;top:2vh;width:240px;opacity:.7"></div>
+ </div>
+ <div class="layer" data-speed="0.4" data-depth="22" style="top:62vh;height:40vh">
+  <div class="cloud" style="left:35%;top:6vh;width:200px;background:rgba(255,200,200,.45)"></div>
+ </div>
+
+ <!-- MOUNTAINS (far -> near) -->
+ <div class="layer mtn" data-speed="0.35" data-depth="10" style="top:62vh"><svg viewBox="0 0 1440 400" preserveAspectRatio="none" style="height:44vh"><path fill="#8d4f8f" d="M0 400V230l140-90 120 70 160-130 170 120 130-80 190 140 150-110 180 100 140-60v210z"/></svg></div>
+ <div class="layer mtn" data-speed="0.2" data-depth="20" style="top:72vh"><svg viewBox="0 0 1440 400" preserveAspectRatio="none" style="height:42vh"><path fill="#5a3478" d="M0 400V260l200-140 150 100 190-150 160 130 170-90 210 150 130-80 230 80v200z"/></svg></div>
+ <div class="layer mtn" data-speed="0.07" data-depth="32" style="top:82vh"><svg viewBox="0 0 1440 400" preserveAspectRatio="none" style="height:40vh"><path fill="#2a1a4a" d="M0 400V220l120 60 180-130 140 110 160-90 150 120 170-100 200 130 120-60 200 60v230z"/></svg></div>
+ <div class="layer mtn" data-speed="-0.05" data-depth="44" style="top:96vh"><svg viewBox="0 0 1440 400" preserveAspectRatio="none" style="height:40vh"><path fill="#0b0818" d="M0 400V180l90 50 120-110 110 90 140-70 170 110 130-80 190 90 150-120 140 100v260z"/></svg></div>
+
+ <!-- CONTENT -->
+ <section class="panel" id="s0">
+  <p class="tag reveal">An interactive journey</p>
+  <h1 class="reveal">Parallax<br>Universe</h1>
+  <p class="reveal">Scroll down and leave the ground behind. Every layer moves at its own speed, so depth emerges from motion alone.</p>
+ </section>
+ <section class="panel right" id="s1">
+  <p class="tag reveal">01 · Atmosphere</p>
+  <h2 class="reveal">Breaking through<br>the clouds</h2>
+  <p class="reveal">Distant mountains drift slowly while the near ones rush past. The sky shifts from sunset gold into deep violet.</p>
+ </section>
+ <section class="panel" id="s2">
+  <p class="tag reveal">02 · Orbit</p>
+  <h2 class="reveal">Hello, Moon</h2>
+  <p class="reveal">Stars appear in three depth layers. Satellites and astronauts float in the foreground, faster than the scroll itself.</p>
+ </section>
+ <section class="panel mid" id="s3">
+  <p class="tag reveal">03 · Solar system</p>
+  <h2 class="reveal">A crowd of worlds</h2>
+  <p class="reveal">Ringed giants, ice moons and gas planets each sit on their own layer, so they slide past one another as you travel.</p>
+ </section>
+ <section class="panel right" id="s4">
+  <p class="tag reveal">04 · Deep space</p>
+  <h2 class="reveal">Nebulae &amp;<br>distant galaxies</h2>
+  <p class="reveal">The slowest layers sit at the back. Their near standstill is what makes everything else feel close.</p>
+ </section>
+ <section class="panel mid" id="s5">
+  <p class="tag reveal">Journey complete</p>
+  <h2 class="reveal">You made it.</h2>
+  <p class="reveal">Built with plain HTML, CSS and a little JavaScript.</p>
+  <a class="btn reveal" href="#s0">Back to Earth ↑</a>
+ </section>
+</main>
+
+<script>
+(function(){
+ var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ var world = document.getElementById('world');
+
+ // 1. Generate stars: three layers, nearer layers have bigger stars
+ function makeStars(id, count, size, minOp){
+  var box = document.getElementById(id), frag = document.createDocumentFragment();
+  for(var i=0;i<count;i++){
+   var s = document.createElement('div'), y = 12 + Math.random()*88;
+   s.className = 'star';
+   s.style.cssText = 'left:'+(Math.random()*100)+'%;top:'+y+'%;width:'+size+'px;height:'+size+'px;opacity:'+(minOp+Math.random()*.5);
+   if(Math.random()<.15) s.style.animation = 'tw '+(2+Math.random()*3)+'s ease-in-out infinite';
+   frag.appendChild(s);
+  }
+  box.appendChild(frag);
+ }
+ var st = document.createElement('style');
+ st.textContent = '@keyframes tw{50%{opacity:.1}}';
+ document.head.appendChild(st);
+ makeStars('stars1', 140, 1.5, .3);
+ makeStars('stars2', 70, 2.2, .5);
+ makeStars('stars3', 30, 3.2, .6);
+
+ // 2. Parallax engine
+ var layers = [].slice.call(document.querySelectorAll('.layer'));
+ var spins = [].slice.call(document.querySelectorAll('[data-spin]'));
+ var rocket = document.getElementById('rocket');
+ var alt = document.getElementById('alt'), bar = document.getElementById('bar');
+ var mx = 0, my = 0, tx = 0, ty = 0, ticking = false;
+ var cue = document.getElementById('scroll-cue');
+
+ function update(){
+  ticking = false;
+  var y = window.pageYOffset || 0;
+  var max = Math.max(1, world.offsetHeight - window.innerHeight);
+  var p = Math.min(1, y / max);
+  mx += (tx - mx) * .08; my += (ty - my) * .08;
+
+  layers.forEach(function(l){
+   var sp = parseFloat(l.dataset.speed) || 0;
+   var d = parseFloat(l.dataset.depth) || 0;
+   var ox = reduce ? 0 : mx * d, oy = reduce ? 0 : my * d * .5;
+   var yy = reduce ? 0 : y * sp;
+   l.style.transform = 'translate3d('+ox+'px,'+(yy+oy)+'px,0)';
+  });
+  spins.forEach(function(el, i){ el.style.transform = 'rotate('+(y*.05*(i%2?-1:1))+'deg)'; });
+
+  // rocket weaves left and right and tilts
+  if(!reduce){
+   var wob = Math.sin(p * Math.PI * 6);
+   rocket.style.transform = 'translate3d('+(wob*18)+'vw,'+(-p*10)+'vh,0) rotate('+(45 - wob*25)+'deg)';
+  }
+  rocket.style.opacity = p > .97 ? 0 : 1;
+  cue.classList.toggle('hidden', p > .015);
+
+  alt.textContent = Math.round(p * 400).toLocaleString('en-US');
+  bar.style.width = (p * 100) + '%';
+  if(Math.abs(tx-mx) > .1 || Math.abs(ty-my) > .1) request();
+ }
+ function request(){ if(!ticking){ ticking = true; requestAnimationFrame(update); } }
+
+ window.addEventListener('scroll', request, {passive:true});
+ window.addEventListener('resize', request);
+ window.addEventListener('mousemove', function(e){
+  tx = (e.clientX / window.innerWidth - .5) * 2;
+  ty = (e.clientY / window.innerHeight - .5) * 2;
+  request();
+ });
+ window.addEventListener('blur', function(){ tx = 0; ty = 0; request(); });
+
+ // 3. Reveal text as it scrolls into view
+ var io = new IntersectionObserver(function(es){
+  es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); } });
+ }, {threshold:.25});
+ [].forEach.call(document.querySelectorAll('.reveal'), function(el, i){
+  el.style.transitionDelay = (i % 4) * 0.12 + 's';
+  io.observe(el);
+ });
+
+ update();
+})();
+</script>
+</body>
+</html>
